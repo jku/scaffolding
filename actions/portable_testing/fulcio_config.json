@@ -1,0 +1,9 @@
+{
+  "OIDCIssuers": {
+    "http://fakeoidc-fake-oidc-1:8080": {
+      "IssuerURL": "http://fakeoidc-fake-oidc-1:8080",
+      "ClientID": "sigstore",
+      "Type": "email"
+    }
+  }
+}

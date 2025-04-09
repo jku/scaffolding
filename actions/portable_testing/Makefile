@@ -20,6 +20,7 @@ TIMESTAMP_REPO ?= https://github.com/sigstore/timestamp-authority.git
 
 # prevent a conflict with rekor-server's metrics port.
 export FULCIO_METRICS_PORT = 2113
+export FULCIO_CONFIG = $(PWD)/fulcio_config.json
 
 CHECKOUT_DIR ?= ./CHECKOUT_DIR
 FULCIO_DIR ?= $(CHECKOUT_DIR)/fulcio

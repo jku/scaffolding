@@ -14,7 +14,9 @@
 
 # optionally set these env variables
 FULCIO_REPO ?= https://github.com/sigstore/fulcio.git
-REKOR_REPO ?= https://github.com/sigstore/rekor-tiles.git
+REKOR_REPO ?= https://github.com/sigstore/rekor.git
+REKORV2_REPO ?= https://github.com/sigstore/rekor-tiles.git
+TIMESTAMP_REPO ?= https://github.com/sigstore/timestamp-authority.git
 
 # prevent a conflict with rekor-server's metrics port.
 export FULCIO_METRICS_PORT = 2113
@@ -22,11 +24,9 @@ export FULCIO_METRICS_PORT = 2113
 CHECKOUT_DIR ?= ./CHECKOUT_DIR
 FULCIO_DIR ?= $(CHECKOUT_DIR)/fulcio
 REKOR_DIR ?= $(CHECKOUT_DIR)/rekor
-
-# all
-
-.PHONY: all
-all: checkout build up
+REKORV2_DIR ?= $(CHECKOUT_DIR)/rekorv2
+TIMESTAMP_DIR ?= $(CHECKOUT_DIR)/timestamp
+FAKEOIDC_DIR = fakeoidc
 
 .PHONY: checkout
 checkout:
@@ -41,25 +41,16 @@ ifeq ($(wildcard $(REKOR_DIR)),)
 else
 	@echo "Already cloned rekor"
 endif
-
-.PHONY: clean
-clean:
-	rm -rf $(FULCIO_DIR) $(REKOR_DIR)
-
-.PHONY: build
-build:
-# bring up both fulcio and rekor simultaneously.
-	make build-fulcio build-rekor -j 2
-
-.PHONY: up
-up:
-# bring up both fulcio and rekor simultaneously.
-	make up-fulcio up-rekor -j 2
-
-.PHONY: down
-down:
-# bring down both fulcio and rekor simultaneously.
-	make down-fulcio down-rekor -j 2
+ifeq ($(wildcard $(REKORV2_DIR)),)
+	git clone --depth 1 $(REKORV2_REPO) $(REKORV2_DIR)
+else
+	@echo "Already cloned rekorv2"
+endif
+ifeq ($(wildcard $(TIMESTAMP_DIR)),)
+	git clone --depth 1 $(TIMESTAMP_REPO) $(TIMESTAMP_DIR)
+else
+	@echo "Already cloned timestamp"
+endif
 
 # fulcio
 
@@ -88,3 +79,45 @@ up-rekor:
 .PHONY: down-rekor
 down-rekor:
 	cd $(REKOR_DIR) && docker compose down
+
+# rekorv2
+
+.PHONY: build-rekorv2
+build-rekorv2:
+	cd $(REKORV2_DIR) && docker compose build
+
+.PHONY: up-rekorv2
+up-rekorv2:
+	cd $(REKORV2_DIR) && docker compose up --wait
+
+.PHONY: down-rekorv2
+down-rekorv2:
+	cd $(REKORV2_DIR) && docker compose down
+
+# timestamp
+
+.PHONY: build-timestamp
+build-timestamp:
+	cd $(TIMESTAMP_DIR) && docker compose build
+
+.PHONY: up-timestamp
+up-timestamp:
+	cd $(TIMESTAMP_DIR) && docker compose up --wait
+
+.PHONY: down-timestamp
+down-timestamp:
+	cd $(TIMESTAMP_DIR) && docker compose down
+
+# fakeoidc
+
+.PHONY: build-fakeoidc
+build-fakeoidc:
+	cd $(FAKEOIDC_DIR) && docker compose build
+
+.PHONY: up-fakeoidc
+up-fakeoidc:
+	cd $(FAKEOIDC_DIR) && docker compose up --wait
+
+.PHONY: down-fakeoidc
+down-fakeoidc:
+	cd $(FAKEOIDC_DIR) && docker compose down
